@@ -9,4 +9,8 @@ node_modules/
 
 .shadow-cljs/
 www/js/cljs-runtime/
+www/js/habits.js
+www/js/index.js
+www/js/main.js
+www/js/manifest.edn
 *.sublime-*
