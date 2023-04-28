@@ -234,6 +234,7 @@
 (defn save-file [dirname filename content]
   (js/Promise.
    (fn [resolve reject]
+
      (js/window.resolveLocalFileSystemURL
       dirname
       (fn [dir-entry]
@@ -327,39 +328,37 @@
 (def app (js/document.getElementById "app"))
 (def popups (js/document.getElementById "popups"))
 
-(defn show-error-popup [props]
+(defn show-popup [props]
   (js/Promise.
    (fn [resolve reject]
      (rdom/render [dialog
                     {:open true}
                     [dialog-content
                       (into [stack] (for [m (:messages props)]
-                                      [alert {:severity "error"
+                                      [alert {:severity (:severity props)
                                               :style {:white-space "pre-wrap"}}
                                              m]))]
                     [dialog-actions
+                      (if (not (:no-hidden props))
+                        [button {:on-click #(rdom/unmount-component-at-node popups)}
+                                (or (:no-label props) "No")])
                       [button {:on-click #(do (rdom/unmount-component-at-node popups)
                                             (resolve true))}
-                              "OK"]]]
+                              (or (:ok-label props) "OK")]]]
                   popups))))
 
+(defn show-info-popup [props]
+  (show-popup (assoc props :severity "info" :no-hidden true)))
+
+(defn show-error-popup [props]
+  (show-popup (assoc props :severity "error" :no-hidden true)))
+
 (defn show-confirm-popup [props]
-  (js/Promise.
-   (fn [resolve reject]
-     (rdom/render [dialog
-                  {:open true}
-                  [dialog-content (:message props)]
-                  [dialog-actions
-                    [button {:on-click #(rdom/unmount-component-at-node popups)}
-                           "No"]
-                    [button {:on-click #(do (rdom/unmount-component-at-node popups)
-                                            (resolve true))}
-                            "Yes"]]]
-                  popups))))
+  (show-popup (assoc props :severity "warning" :no-hidden false :ok-label "Yes")))
 
 (defn layout [node]
   [box {:display "flex" :height "100%"}
-    [box {:m "auto" :min-width "400px" :height "100%"} node]])
+    [box {:width "100%" :height "100%"} node]])
 
 (defn panel [header & nodes]
   (into
@@ -386,9 +385,15 @@
   (let [anchor (r/atom js/undefined)
         opened (r/atom false)
         handle-export (fn [event]
-                        (file-saver/saveAs (js/Blob. [(to-json @storage)]
-                                                     {:type "text/json;charset=utf-8"})
-                                           "habits.json"))
+                        (if (= (.-platformId js/cordova) "browser")
+                          (file-saver/saveAs (js/Blob. [(to-json @storage)]
+                                                       (clj->js {:type "text/json;charset=utf-8"}))
+                                             "habits.json")
+                          (-> (save-file (.. js/cordova -file -externalDataDirectory)
+                                         "habits.json"
+                                         (to-json @storage))
+                              (.then #(show-info-popup {:messages ["File saved in app directory as habits.json"]}))
+                              (.catch #(show-error-popup {:messages [(.-message %)]})))))
         handle-import (fn [event]
                         (-> (upload-file (first (.. event -target -files)))
                             (.then #(load-storage-from-json %))
@@ -466,7 +471,7 @@
                       (reset! name (.. % -target -value)))
         pick-color #(reset! color (.-hex %))
         delete (fn []
-                 (-> (show-confirm-popup {:message "Are you sure you want to delete this habit ?"})
+                 (-> (show-confirm-popup {:messages ["Are you sure you want to delete this habit ?"]})
                      (.then #(do (remove-habit (:id props))
                                  (open-route "/habits")))))
         validate (validation {:name {#(not (str/blank? %1)) "This field is required"}})
@@ -500,7 +505,7 @@
                :color "#8bc34a"
                :on-submit (fn [fields]
                             (update-habit (next-habit-id) (:name fields) (:color fields))
-                            (open-route "/habits"))}])
+                            (top-route "/habits"))}])
 
 (defn habit-edit-form [props]
   (if-let [habit (find-record (:habits @storage) :id (:id props))]
@@ -510,7 +515,7 @@
                  :color (:color habit)
                  :on-submit (fn [fields]
                               (update-habit (:id props) (:name fields) (:color fields))
-                              (open-route "/habits"))}]))
+                              (top-route "/habits"))}]))
 
 ;;; Day
 
@@ -653,10 +658,7 @@
 
 (js/document.addEventListener "deviceready" on-ready false)
 
-(defn ^:dev/after-load start []
-  (log "Starting...")
-  ;(dispatch! "/")
-  )
+(defn ^:dev/after-load start [])
 
 (defroute "/" {:as params}
   (do-layout [day-panel {:date (js/Date.)}]))
