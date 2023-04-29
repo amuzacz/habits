@@ -246,7 +246,7 @@
            (.createWriter
             file-entry
             (fn [writer]
-              (set! (.-onwriteend writer) (fn [_] (resolve (count content))))
+              (set! (.-onwriteend writer) (fn [_] (resolve file-entry)))
               (set! (.-onerror writer) #(reject (cast-file-error %)))
               (.write writer content))
             (fn [error] (reject (cast-file-error error)))))
@@ -392,7 +392,9 @@
                           (-> (save-file (.. js/cordova -file -externalDataDirectory)
                                          "habits.json"
                                          (to-json @storage))
-                              (.then #(show-info-popup {:messages ["File saved in app directory as habits.json"]}))
+                              (.then #(do (js/cordova.InAppBrowser.open (gobject/get % "nativeURL") "_blank"
+                                                                        "location=yes,toolbarcolor=#2196f3")
+                                          (show-info-popup {:messages ["File also saved in app directory as habits.json"]})))
                               (.catch #(show-error-popup {:messages [(.-message %)]})))))
         handle-import (fn [event]
                         (-> (upload-file (first (.. event -target -files)))
