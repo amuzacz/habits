@@ -389,12 +389,11 @@
                           (file-saver/saveAs (js/Blob. [(to-json @storage)]
                                                        (clj->js {:type "text/json;charset=utf-8"}))
                                              "habits.json")
-                          (-> (save-file (.. js/cordova -file -externalDataDirectory)
+                          (-> (save-file (str (.. js/cordova -file -externalRootDirectory) "Download")
                                          "habits.json"
                                          (to-json @storage))
-                              (.then #(do (js/cordova.InAppBrowser.open (gobject/get % "nativeURL") "_blank"
-                                                                        "location=yes,toolbarcolor=#2196f3")
-                                          (show-info-popup {:messages ["File also saved in app directory as habits.json"]})))
+                              (.then #(show-info-popup
+                                       {:messages ["File also saved in Download directory as habits.json"]}))
                               (.catch #(show-error-popup {:messages [(.-message %)]})))))
         handle-import (fn [event]
                         (-> (upload-file (first (.. event -target -files)))

@@ -13,4 +13,5 @@ www/js/habits.js
 www/js/index.js
 www/js/main.js
 www/js/manifest.edn
+package-lock.json
 *.sublime-*

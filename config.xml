@@ -16,6 +16,9 @@
     <icon src="res/icon.png" />
     <platform name="android">
         <allow-intent href="market:*" />
+        <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/uses-permission" xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+        </edit-config>
     </platform>
     <platform name="ios">
         <allow-intent href="itms:*" />
