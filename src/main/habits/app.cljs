@@ -148,9 +148,15 @@
 
 (defn update-habit [id name color]
   (swap! storage (fn [s]
-                   (assoc s :habits (-> (filter #(not= (:id %) id) (:habits s))
-                                        (conj {:id id :name name :color color})
-                                        ((partial into [])))))))
+                   (let [habits (:habits s)
+                         new-habit {:id id :name name :color color}
+                         pos (reduce-kv #(if (= (:id %3) id) (reduced %2) %1)
+                                        (count habits)
+                                        habits)]
+                     (assoc s :habits (-> (filter #(not= (:id %) id) (:habits s))
+                                          (conj new-habit)
+                                          ((partial into []))
+                                          (move-item new-habit (inc pos))))))))
 
 (defn get-habits-at [date]
   (let [data @storage]
@@ -362,9 +368,9 @@
 
 (defn panel [header & nodes]
   (into
-    [box {:display "flex" :flex-direction "column" :height "100%" :p "0px 10px"}]
+    [box {:display "flex" :flex-direction "column" :height "100%" :p "0px"}]
     [header (into [box {:display "flex" :flex-direction "column" :height "100%"
-                        :p "10px 0px"}]
+                        :p "0px"}]
                   nodes)]))
 
 (defn preloader []
@@ -439,7 +445,7 @@
           [no-habits]
           [list (for [i all-habits] ^{:key i}
                   [list-item
-                    {:sx {:p "8px 0px"}}
+                    {:sx {:p "8px 0px 8px 10px"}}
                     [:div {:style {:display "flex" :flex-direction "row" :width "100%"}}
                       [:div {:style {:flex 1 :display "flex" :align-items "center"}} (:name i)]]
                     [list-item-secondary-action

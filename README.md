@@ -5,7 +5,7 @@ TODO: Publish on google play store so some screenshots wil be available.
 Development:
 ```sh
 # In first terminal
-$ shadow-clj watch app
+$ shadow-cljs watch app
 # In second terminal
 $ corodova run browser
 ```
