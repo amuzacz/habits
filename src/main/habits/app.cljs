@@ -546,6 +546,7 @@
                              :size "small"
                              :placeholder "minutes"
                              :label "time"
+                             :InputLabelProps {:shrink true}
                              :type "number"
                              :value (:value (find-record checked-habits :id (:id i)))
                              :on-change #(on-fill % (:id i))}]]])]))
