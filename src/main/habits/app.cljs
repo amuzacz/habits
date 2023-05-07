@@ -492,7 +492,7 @@
                  :right [icon-button {:disabled (nil? (:id props))
                                       :on-click delete}
                                      [delete-icon]]}]
-        [box {:width "100%"}
+        [box  {:m "0px 10px"}
           [text-field {:variant "outlined" :label "Name" :full-width true :size "small"
                        :error (some? @name-error)
                        :helper-text @name-error
@@ -503,8 +503,8 @@
                                :circle-size 35
                                :width 300
                                :on-change #(pick-color %1)}]]
-        [box {:mt "auto"} [button {:variant "contained" :full-width true
-                                   :on-click #(submit)} "Save"]]])))
+        [box {:m "auto 10px 10px 10px"}
+          [button {:variant "contained" :full-width true :on-click #(submit)} "Save"]]])))
 
 (defn habit-add-form []
   [habit-form {:title "Add habit"
@@ -627,12 +627,13 @@
                            [chevron-left]]
                    :text "Calendar"
                    :right [icon-button {:on-click #(top-route "/")} [calendar-today-icon]]}]
-          [localization-provider {:date-adapter cljs-time-adapter}
-                                 [date-calendar {:on-change #(top-route (str "/day/" (format-date %)))
-                                                 :on-month-change #(reset! selected-month (.-date %))
-                                                 :default-calendar-month (gdate/DateTime. @selected-month)
-                                                 :slots {:day #(calendar-day %1 @checked-habits)}}]]
-          [box
+          [box {:min-height 300}
+            [localization-provider {:date-adapter cljs-time-adapter}
+                                   [date-calendar {:on-change #(top-route (str "/day/" (format-date %)))
+                                                   :on-month-change #(reset! selected-month (.-date %))
+                                                   :default-calendar-month (gdate/DateTime. @selected-month)
+                                                   :slots {:day #(calendar-day %1 @checked-habits)}}]]]
+          [box {:min-height 200}
             (when-let [series (seq (habit-series @checked-habits start-date end-date))]
               (into [:> FlexibleWidthXYPlot {:height 200
                                              :x-type "time"
