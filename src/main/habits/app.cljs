@@ -197,7 +197,7 @@
             (if-let [habits (seq (filter #(= (:id %) habit-id) (:habits entry)))]
               (assoc acc key (assoc entry :habits habits))
               acc))
-          {}
+          (sorted-map)
           timeline))
 
 (defn validation
@@ -399,7 +399,7 @@
                                          "habits.json"
                                          (to-json @storage))
                               (.then #(show-info-popup
-                                       {:messages ["File also saved in Download directory as habits.json"]}))
+                                       {:messages ["File saved in Download directory as habits.json"]}))
                               (.catch #(show-error-popup {:messages [(.-message %)]})))))
         handle-import (fn [event]
                         (-> (upload-file (first (.. event -target -files)))
